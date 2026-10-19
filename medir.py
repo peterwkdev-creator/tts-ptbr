@@ -35,7 +35,10 @@ VAO = 0.15  # s; a pausa de vírgula do Kokoro é 0,15
 
 def palavras(texto):
     """Normaliza, tira acento e pontuação: só as palavras, em minúsculas."""
-    texto = normalizar(texto, fonemas=False).lower()
+    # sem o dicionário de pronúncia: ele reescreve o termo pelo contexto
+    # ("Claude Code" vira "Clôude Côude", mas "Cloud Code" fica), e a palavra
+    # que o Whisper acertou contava como erro (achado em 19/10)
+    texto = normalizar(texto, dicionario=[], fonemas=False).lower()
     texto = unicodedata.normalize("NFD", texto)
     texto = "".join(c for c in texto if unicodedata.category(c) != "Mn")
     return re.findall(r"[a-z]+", texto)

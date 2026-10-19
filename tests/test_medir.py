@@ -27,6 +27,12 @@ class TestPalavras(unittest.TestCase):
         self.assertEqual(palavras("v2.1 custa R$ 2,00"),
                          palavras("versão dois ponto um custa dois reais"))
 
+    def test_dicionario_nao_entra(self):
+        # o dicionário troca "Claude Code" inteiro; a mesma palavra escrita
+        # tem de dar a mesma palavra dos dois lados
+        self.assertEqual(palavras("Claude Code e tokens"), ["claude", "code", "e", "tokens"])
+        self.assertEqual(palavras("Cloud Code")[1], palavras("Claude Code")[1])
+
     def test_versao_sem_v_perde_o_ponto(self):
         # limite conhecido: sem o "v", "2.1" não é versão e o ponto some
         # (o Whisper escreve "versão 2.1.299"), o que soma erro ao WER
