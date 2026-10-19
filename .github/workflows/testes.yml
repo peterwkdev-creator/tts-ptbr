@@ -1,0 +1,38 @@
+# Testes a cada push e pull request, do checkout limpo, sem instalar nada e
+# sem modelo baixado: o normalizador, a medida de WER, os exemplos 01 e 02 e
+# os blocos Python do README. A síntese (Kokoro) e a transcrição (Whisper)
+# precisam dos modelos e ficam fora do CI. Um job no Windows confere a saída
+# fora do UTF-8 (cp1252). Actions fixadas pelo commit da versão do
+# comentário (a tag se move).
+name: testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unittest:
+    runs-on: ${{ matrix.os }}
+    # a suíte leva segundos; sem teto, um processo preso segura o job por 6 h
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.11", "3.12", "3.13", "3.14"]
+        include:
+          - os: windows-latest
+            python: "3.12"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m unittest -v

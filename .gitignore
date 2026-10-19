@@ -1,0 +1,19 @@
+# Segredo (bloco padrão)
+.env*
+!.env.example
+*backup_codes*
+*recovery*codes*
+*.pem
+*.key
+.claude/settings.local.json
+
+__pycache__/
+*.pyc
+
+# Ambientes, modelos e áudio gerado (baixar_modelos.py e os scripts os recriam)
+.venv*/
+modelos/
+amostras/
+saida/
+*.wav
+*.parcial

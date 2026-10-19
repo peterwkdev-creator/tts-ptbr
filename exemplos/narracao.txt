@@ -1,0 +1,4 @@
+# Uma frase por linha, "slide | frase". Linha com # se ignora.
+1 | Testei o Claude Code v2.1.299 em 18/10/2026.
+1 | Cada prompt relê o histórico inteiro.
+2 | Só 0,3% dos tokens foi resposta. Vale a pena medir?

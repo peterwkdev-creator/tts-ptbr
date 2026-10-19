@@ -1,0 +1,5 @@
+# Narração (narrar.py, kokoro.py, prosodia.py, rodadas/calibrar.py).
+# Versões com que o projeto foi medido; o ffmpeg vem à parte, no PATH.
+kokoro-onnx==0.6.1
+numpy==2.5.4
+onnxruntime==1.31.0

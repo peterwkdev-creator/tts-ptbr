@@ -1,0 +1,27 @@
+# termo<TAB>grafia para um leitor de PT-BR[<TAB>[[fonemas]]]. Uma entrada por
+# linha; o termo casa sem diferença de maiúsculas, o mais longo primeiro.
+# Ajustar ouvindo: troque a grafia antes de escrever fonemas à mão.
+# A 3ª coluna é opcional: fonemas diretos ao Piper (IPA do espeak), para
+# quando a grafia não basta; conferir no fonemas.txt de rodadas/refinar.py. O Kokoro
+# usa a 2ª coluna, porque não aceita [[ ]].
+# Calibrado com o Peter nas rodadas 4 a 6 (18/10, calibrar.py): o "Claude"
+# lido em português ("Cláudi", klˈaʊdʒy) e o "Code" em inglês, com o "o" do
+# português (kˈoudʒy). "Clóud Côud" soava norte-americano. "Claude" sozinho
+# fica sem entrada: o espeak do Kokoro já o lê em português. O do Piper lê
+# "Claude" como klˈodɪ ("Clôdi"); "Cláude" dá klˈaʊdʒɪ nos dois. Fonemas em
+# [[ ]] aqui deixavam tônico o "o" de "Testei o" (r7, 18/10).
+Claude Code	Cláude Côude
+# "tôquens" saía tˈokeɪns e "prómpt", nasal pɾˈõmptʃ (fonemas, 18/10)
+tokens	tôquens	[[tˈokẽjs]]
+token	tôquen	[[tˈokẽj]]
+prompts	prómpts	[[pɾˈɔmptʃs]]
+prompt	prómpt	[[pɾˈɔmptʃ]]
+Reels	Ríls
+Reel	Ríl
+GitHub	Guít Râb
+ElevenLabs	Iléven Lébs
+skill	squíl
+deploy	diplói
+commit	comít
+# 18/10, Peter: "cache" saía kˈaʃy ("cáchi"); "quéche" dá kˈɛʃy ("quéchi").
+cache	quéche

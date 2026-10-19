@@ -1,0 +1,3 @@
+# Medida pelo Whisper (medir.py, exemplos/04_medir_wav.py), num ambiente à parte.
+faster-whisper==1.2.1
+numpy==2.5.4

@@ -1,0 +1,1 @@
+Testei o Claude Code v2.1.299 em 18/10/2026. Cada prompt relê o histórico: 96% dos tokens foram releitura, e só 0,3% foi resposta. Liguei um servidor MCP e chamei a API três vezes. Se o plano custasse R$ 1.299,90 por mês, valeria a pena? A resposta está na tela, com data.

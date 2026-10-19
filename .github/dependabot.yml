@@ -1,0 +1,16 @@
+# Dependabot só para as actions dos workflows. Mora em .github/dependabot.yml
+# e liga sozinho com o arquivo no main, sem mexer em Settings. Um PR por mês
+# com todas as actions juntas; ele só entra com o CI verde e o sim do dono.
+# Sem ele, uma action com runtime descontinuado (checkout@v4 no Node 20)
+# só aparece quando alguém lê o aviso do run.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "ci"

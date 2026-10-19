@@ -1,0 +1,36 @@
+name: Resultado diferente do esperado
+description: O normalizador ou a narração deu um resultado diferente do esperado (pronúncia, número, pausa). Termo que falta vai no outro modelo.
+title: "Resultado diferente: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use dados inventados: nada de nome, documento ou dado real de pessoa ou de empresa.
+        A voz é sintética: confira a pronúncia ouvindo antes de publicar qualquer áudio.
+  - type: input
+    id: versao
+    attributes:
+      label: Versão
+      description: "A tag (vX.Y.Z) ou o commit (`git rev-parse --short HEAD`)."
+    validations:
+      required: true
+  - type: textarea
+    id: entrada
+    attributes:
+      label: O que você rodou
+      description: A entrada e o comando ou a chamada em Python.
+    validations:
+      required: true
+  - type: textarea
+    id: obtido
+    attributes:
+      label: O que saiu (o texto normalizado, ou o trecho do áudio e o tempos.json)
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: O que você esperava, e de onde vem
+      description: A pronúncia certa e de onde vem (dicionário, regra da ortografia, a medida do Whisper).
+    validations:
+      required: true
