@@ -28,3 +28,9 @@ cache	quéche
 # 20/10, Peter: o ".ai" se lê letra por letra, em inglês ("ei ai"); sem a
 # entrada, o Kokoro fazia "claudy.ai" e o texto escrito "ponto ai" saía "ponto ái".
 claude.ai	claude ponto ei ai
+# 21/10, Peter: "subagente" saía "su-ba-gente" (sˌubaʒˈeɪŋtʃy, o "b" colado no
+# "a"). "sub-agente" não basta: o _secundaria da r10 tira o ˌ e volta o mesmo
+# som. No A/B, "súbi agente" (sˈubi aʒˈeɪŋtʃy) ganhou; "subi" sai subˈi.
+# O plural casa à parte.
+subagentes	súbi agentes
+subagente	súbi agente

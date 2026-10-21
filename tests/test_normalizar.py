@@ -60,6 +60,11 @@ class TestDicionario(unittest.TestCase):
         self.assertEqual(norm("o Claude Code e os tokens", fonemas=False),
                          "o Cláude Côude e os tôquens")
 
+    def test_prefixo_sub_separado(self):
+        # 21/10, Peter: sem a entrada, o Kokoro lia "su-ba-gente"
+        self.assertEqual(norm("o subagente e os Subagentes", fonemas=False),
+                         "o súbi agente e os súbi agentes")
+
     def test_fonemas_para_o_piper(self):
         # a 3ª coluna, com o til separado (NFD), como o Piper aceita
         self.assertEqual(norm("tokens", fonemas=True),
