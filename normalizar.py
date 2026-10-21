@@ -133,6 +133,45 @@ def _tonica_ia(m):
     return m.group(1) + "í" + m.group(2)
 
 
+NUMERAIS = set(UNIDADES + DEZENAS + CENTENAS
+               + ["cem", "mil", "milhão", "milhões", "meio"]) - {""}
+PONTUACAO = re.compile(r"[,.?!:;]")
+
+
+def tonica_dos_numeros(texto, fonemas):
+    """Número por extenso com a tônica só na última palavra (r11, 21/10).
+
+    O espeak acentua cada palavra ("sˈeɪŋtw i dˈɛz mˈiʊ" soa CENto e DEZ
+    MIL); as palavras antes da última passam a ˌ e se colam num token
+    ("sˌeɪŋtwidˌɛz mˈiʊ"), a variante D do A/B do Peter. texto é o já
+    normalizado que gerou fonemas. Devolve (fonemas, ok); com ok False
+    nada muda, porque palavras e tokens não casaram um a um."""
+    palavras, tokens = texto.split(), fonemas.split(" ")
+    if len(palavras) != len(tokens):
+        return fonemas, False
+    limpa = [PONTUACAO.sub("", p).lower() for p in palavras]
+    eh = [p in NUMERAIS for p in limpa]
+    i = 0
+    while i < len(limpa):
+        if not eh[i]:
+            i += 1
+            continue
+        j = fim = i
+        # segue por numeral ou "e" entre numerais, até uma pontuação
+        while j + 1 < len(limpa) and not PONTUACAO.search(palavras[j]) and (
+                eh[j + 1] or (limpa[j + 1] == "e" and j + 2 < len(limpa)
+                              and eh[j + 2])):
+            j += 1
+            if eh[j]:
+                fim = j
+        if fim > i:
+            tokens[i] = "".join(t.replace("ˈ", "ˌ") if eh[k] else t
+                                for k, t in enumerate(tokens[i:fim], i))
+            tokens[i + 1:fim] = [None] * (fim - i - 1)
+        i = j + 1
+    return " ".join(t for t in tokens if t is not None), True
+
+
 def carregar_dicionario(caminho=DICIONARIO, fonemas=True):
     """Lê o .tsv em caminho -> [(termo, pronúncia)], o termo mais longo antes.
 
@@ -162,7 +201,7 @@ def normalizar(texto, dicionario=None, fonemas=True):
     """
     if dicionario is None:
         dicionario = carregar_dicionario(fonemas=fonemas)
-    texto = re.sub(r"R\$\s?(\d{1,3}(?:\.\d{3})*|\d+)(?:,(\d{2}))?",
+    texto = re.sub(r"R\$\s?(\d{1,3}(?:\.\d{3})*(?!\d)|\d+)(?:,(\d{2}))?",
                    _dinheiro, texto)
     texto = re.sub(r"\b(\d{1,2})/(\d{1,2})(?:/(\d{4}))?\b", _data, texto)
     texto = re.sub(r"\bv(\d+(?:\.\d+)+)\b", _versao, texto)
@@ -184,6 +223,8 @@ def normalizar(texto, dicionario=None, fonemas=True):
 
 CASOS = [
     ("R$ 1.299,90", "mil duzentos e noventa e nove reais e noventa centavos"),
+    # sem o ponto do milhar (o Whisper escreve assim; r11, 21/10)
+    ("R$ 1299,90", "mil duzentos e noventa e nove reais e noventa centavos"),
     ("R$ 1,00", "um real"),
     ("R$ 0,50", "cinquenta centavos"),
     ("R$ 2.000.000", "dois milhões de reais"),

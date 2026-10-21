@@ -1,8 +1,8 @@
-"""Narração de um post: uma frase por linha, no método do 5-final da r10.
+"""Narração de um post: uma frase por linha, no método do 2-numeros da r11.
 
 Entrada: arquivo com linhas "N | frase" (N = slide em que a frase é dita;
 linha vazia ou começada por # se ignora). Cada frase é um lote do Kokoro,
-com os ajustes de fonemas e o acabamento da r10 (prosodia.py), velocidade
+com os ajustes de fonemas e o acabamento da r11 (prosodia.py), velocidade
 pelo RITMO e o último lote mais lento (FINAL). Saída na pasta indicada:
   voz.wav      a narração inteira, -16 LUFS (audio.py)
   tempos.json  versão do TTS, voz e, por frase: slide, texto, início e fim (s)
@@ -23,11 +23,11 @@ from kokoro_onnx import Kokoro
 
 from audio import gravar
 from kokoro import PAUSA_VIRGULA, VARIANTES, fonemizar
-from normalizar import normalizar
+from normalizar import normalizar, tonica_dos_numeros
 from prosodia import FINAL, PAUSA, RITMO, RODADAS
 
 AQUI = Path(__file__).parent
-VERSAO = "r10 5-final"
+VERSAO = "r11 2-numeros"
 ENTRE_SLIDES = 0.25  # s a mais de pausa quando a frase seguinte muda de slide
 
 
@@ -54,13 +54,17 @@ def main():
                     str(modelo / "voices-v1.0.bin"))
     pesos, batido = VARIANTES[voz]
     estilo = sum(kokoro.get_voice_style(v) * p for v, p in pesos.items())
-    ajustes = next(a for nome, _, a, *_ in RODADAS["r10"] if nome == "5-final")
+    ajustes = next(a for nome, _, a, *_ in RODADAS["r11"] if nome == "2-numeros")
     frases = ler(entrada)
     partes, tempos, agora, taxa = [], [], 0.0, 24000
     for i, (slide, texto) in enumerate(frases):
-        fonemas = fonemizar(kokoro, normalizar(texto, fonemas=False), batido)
+        normal = normalizar(texto, fonemas=False)
+        fonemas = fonemizar(kokoro, normal, batido)
         for ajuste in ajustes:
             fonemas = ajuste(fonemas)
+        fonemas, ok = tonica_dos_numeros(normal, fonemas)
+        if not ok:
+            print(f"aviso: números sem ajuste (tokens não casam): {normal}")
         ultima = i == len(frases) - 1
         velocidade = FINAL if ultima else RITMO[i % len(RITMO)]
         audio, taxa = kokoro.create(fonemas, voice=estilo, speed=velocidade,

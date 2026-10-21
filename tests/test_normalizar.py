@@ -74,5 +74,36 @@ class TestDicionario(unittest.TestCase):
         self.assertEqual(norm("o CACHE", fonemas=False), "o quéche")
 
 
+class TestTonicaDosNumeros(unittest.TestCase):
+    tonica = staticmethod(normalizar.tonica_dos_numeros)
+
+    def test_so_a_ultima_tonica_e_as_outras_coladas(self):
+        self.assertEqual(
+            self.tonica("relê cento e dez mil tokens.",
+                        "xelˈe sˈeɪŋtw i dˈɛz mˈiʊ tˈokẽs."),
+            ("xelˈe sˌeɪŋtwidˌɛz mˈiʊ tˈokẽs.", True))
+
+    def test_numero_ate_a_pontuacao(self):
+        self.assertEqual(
+            self.tonica("no pior caso, trinta e sete.",
+                        "nʊ piˈɔɾ kˈazʊ, tɾˈiŋtɐ i sˈɛtʃy."),
+            ("nʊ piˈɔɾ kˈazʊ, tɾˌiŋtɐi sˈɛtʃy.", True))
+
+    def test_virgula_separa_os_numeros(self):
+        fonemas = "dˈɛz, mˈiʊ."
+        self.assertEqual(self.tonica("dez, mil.", fonemas), (fonemas, True))
+
+    def test_par_e_palavra_unica(self):
+        fonemas = "mˈejʊ sˈeɪŋtw."
+        self.assertEqual(self.tonica("meio cento.", fonemas)[0],
+                         "mˌejʊ sˈeɪŋtw.")
+        self.assertEqual(self.tonica("o dez.", "ʊ dˈɛz."), ("ʊ dˈɛz.", True))
+
+    def test_tokens_que_nao_casam_ficam_como_estao(self):
+        fonemas = "sˈeɪŋtwidˈɛz mˈiʊ"
+        self.assertEqual(self.tonica("cento e dez mil", fonemas),
+                         (fonemas, False))
+
+
 if __name__ == "__main__":
     unittest.main()

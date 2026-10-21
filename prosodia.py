@@ -1,4 +1,4 @@
-"""Rodadas 8 a 10: o roteiro inteiro gerado frase a frase no Kokoro.
+"""Rodadas 8 a 11: o roteiro inteiro gerado frase a frase no Kokoro.
 
 Até a r7 o roteiro ia de uma vez ao kokoro.create(), que corta os fonemas em
 lotes de até 510 e deixa o modelo cuidar das pausas dentro do lote. O card do
@@ -30,9 +30,13 @@ r10 (sobre o 5-acabamento da r9, o que o Peter aprovou; todos com acabamento):
   5-final     último lote mais lento (FINAL): alongamento de fim de fala
   6-respiro   inspiração sintética antes de cada lote depois do 1º
               (respiro(); hipótese: ruído filtrado, não a mesma voz)
+r11 (sobre o 5-final da r10, o que o Peter escolheu):
+  1-regua     o 5-final da r10
+  2-numeros   número por extenso com a tônica só na última palavra e as
+              anteriores coladas ("cento e dez mil": sˌeɪŋtwidˌɛz mˈiʊ)
 
 Uso:
-  python prosodia.py [rodada, padrão r10] [voz ...]
+  python prosodia.py [rodada, padrão r11] [voz ...]
 """
 import re
 import sys
@@ -43,7 +47,7 @@ from kokoro_onnx import Kokoro
 
 from audio import gravar
 from kokoro import PAUSA_FRASE, PAUSA_VIRGULA, VARIANTES, VELOCIDADE, fonemizar
-from normalizar import normalizar
+from normalizar import normalizar, tonica_dos_numeros
 
 AQUI = Path(__file__).parent
 # segundos de silêncio depois do lote, pela pontuação final
@@ -113,6 +117,11 @@ RODADAS = {
             ("5-final", 3, R9 + [SIG, ATO], True, "ritmo", "final"),
             ("6-respiro", 3, R9 + [SIG, ATO], True, "ritmo", "final",
              "respiro")],
+    # r11 (21/10): 1-regua é o 5-final da r10; 2-numeros põe a tônica do
+    # número só na última palavra (tonica_dos_numeros, a D do A/B do Peter)
+    "r11": [("1-regua", 3, R9 + [SIG, ATO], True, "ritmo", "final"),
+            ("2-numeros", 3, R9 + [SIG, ATO], True, "ritmo", "final",
+             "numeros")],
 }
 
 
@@ -139,6 +148,10 @@ def sintetizar(kokoro, texto, estilo, batido, degrau, ajustes, extras=()):
         f = fonemizar(kokoro, t, batido)
         for ajuste in ajustes:
             f = ajuste(f)
+        if "numeros" in extras:
+            f, ok = tonica_dos_numeros(t, f)
+            if not ok:
+                print(f"aviso: números sem ajuste (tokens não casam): {t}")
         return f
     if degrau == 1:
         fonemas = fonemas_de(texto)
@@ -177,7 +190,7 @@ def sintetizar(kokoro, texto, estilo, batido, degrau, ajustes, extras=()):
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     args = sys.argv[1:]
-    rodada = args.pop(0) if args and re.fullmatch(r"r\d+", args[0]) else "r10"
+    rodada = args.pop(0) if args and re.fullmatch(r"r\d+", args[0]) else "r11"
     saida = AQUI / "amostras" / rodada
     saida.mkdir(parents=True, exist_ok=True)
     modelo = AQUI / "modelos" / "kokoro"
