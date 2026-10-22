@@ -77,10 +77,11 @@ fora do dicionário.
 python -m unittest
 ```
 
-São 21 testes, que rodam do checkout sem modelo baixado e sem instalar
-nada: os casos do normalizador (`normalizar.CASOS`, também em
-`python normalizar.py --teste`), o dicionário, o WER, os exemplos 1 e 2 e os
-blocos Python deste README. O GitHub Actions os roda a cada push, do Python
+São 31 testes, que rodam do checkout sem modelo baixado e sem instalar
+nada (um só roda com o `requirements.txt`): os casos do normalizador
+(`normalizar.CASOS`, também em `python normalizar.py --teste`), o
+dicionário, o WER, os exemplos 1 e 2, a tabela do exemplo 5 (o WER de cada
+voz refeito da transcrição) e os blocos Python deste README. O GitHub Actions os roda a cada push, do Python
 3.11 ao 3.14 e no Windows. A síntese e a transcrição precisam dos modelos e
 se conferem pela medida: `medir.py` e o exemplo 4. Uma mudança de pronúncia
 só entra se ganhar a escuta às cegas sem piorar o WER.
@@ -93,6 +94,7 @@ só entra se ganhar a escuta às cegas sem piorar o WER.
 | `python exemplos/02_dicionario_proprio.py`: somar o seu `.tsv` ao do projeto | nada |
 | `python exemplos/03_narrar.py [voz]`: narra o `exemplos/narracao.txt` em `saida/exemplo/` | `requirements.txt`, modelo, ffmpeg |
 | `python exemplos/04_medir_wav.py [wav] [texto]`: WER e vãos do áudio do exemplo 3 | `requirements-medir.txt`, ffmpeg |
+| `python exemplos/05_vozes.py kokoro\|piper\|medir`: 6 vozes abertas leem a mesma frase, e o Whisper mede cada uma (abaixo) | os três `requirements*.txt`, modelos, ffmpeg |
 
 Dicionário próprio, no mesmo formato do `dicionario.tsv`
 (`termo<TAB>grafia`):
@@ -117,13 +119,54 @@ print(wer(palavras("Custou R$ 2,00."), palavras("custou dois reais")))
 # 0.0
 ```
 
+### Exemplo 5: seis vozes, a mesma frase
+
+O que mede: 6 vozes abertas leem "Medi no Claude Code: 96% dos tokens são
+releitura.", e o Whisper small transcreve cada uma; a tabela dá a duração e
+o WER. Duas passam pela calibração deste projeto (`alex` e `dora`, pelo
+`narrar.py`); as outras quatro (`santa`, Kokoro puro, e `cadu`, `faber` e
+`jeff`, Piper puro) recebem só o texto por extenso do `normalizar.py`, sem
+o dicionário.
+
+Precisa dos modelos (`python baixar_modelos.py`: o Kokoro e as 3 vozes do
+Piper), do ffmpeg no PATH e de um ambiente por etapa, porque os três
+`requirements*.txt` não se misturam:
+
+```bash
+python exemplos/05_vozes.py kokoro   # no ambiente do requirements.txt
+python exemplos/05_vozes.py piper    # no do requirements-piper.txt
+python exemplos/05_vozes.py medir    # no do requirements-medir.txt; o Whisper small (~480 MB) baixa na 1ª vez
+```
+
+Grava `saida/vozes/<voz>.wav` e `saida/vozes/medidas.tsv` (voz, calibrada,
+duração, WER e transcrição). Medido em 19/10/2026, com a versão r10 do
+normalizador e do dicionário e o Whisper small em CPU (int8); o arquivo
+daquele dia é o `exemplos/vozes_medidas.tsv`:
+
+| Voz | Calibrada | Duração (s) | WER | O Whisper ouviu |
+|---|---|---|---|---|
+| alex | sim | 4,74 | 0,231 | Medino Cloud Code, 96% dos tokens são releitura. |
+| dora | sim | 4,67 | 0,077 | Medi no Cloud Code, 96% dos tokens são releitura. |
+| santa | não | 4,61 | 0,231 | Medino Cloud Code, 96% dos tokens são releitura. |
+| cadu | não | 5,15 | 0,615 | Medina o Cloud Code, 90% e 6% dos Tolkien são re-leitura. |
+| faber | não | 3,89 | 0,231 | Medinuclodo e Code, 96% dos tokens são releitura. |
+| jeff | não | 5,14 | 0,462 | Medindo o clodo e cores, 96% dos tokens são reeleituras. |
+
+A frase tem 13 palavras por extenso: 0,077 é 1 erro (o "Cloud" no lugar de
+"Claude", que o Whisper escreveu para todas as vozes) e 0,231 são 3.
+
+Limites: uma frase só e uma transcrição por voz, sem escuta às cegas; o WER
+mede a inteligibilidade, não a naturalidade; rodar hoje usa o dicionário e o
+normalizador atuais, posteriores à r10, e `alex` e `dora` podem mudar; as
+vozes do Piper rodam sem nenhum ajuste nosso de pronúncia ou ritmo.
+
 ## Fontes, licenças dos modelos e limites
 
 | Componente | Fonte | Licença |
 |---|---|---|
 | Kokoro-82M (modelo) | [hexgrad/Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) | Apache 2.0 |
 | kokoro-onnx (código); o `kokoro-v1.0.onnx` e o `voices-v1.0.bin` da release `model-files-v1.0` são conversões do Kokoro-82M | [thewh1teagle/kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx) | MIT (código), Apache 2.0 (modelo e vozes) |
-| Vozes pt_BR do Piper (faber, cadu, jeff), só nas rodadas | [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices), tag `v1.0.0` | CC0 |
+| Vozes pt_BR do Piper (faber, cadu, jeff), só nas rodadas e no exemplo 5 | [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices), tag `v1.0.0` | CC0 |
 | faster-whisper e o modelo `Systran/faster-whisper-small` | [SYSTRAN/faster-whisper](https://github.com/SYSTRAN/faster-whisper) | MIT |
 
 O pip instala também o phonemizer e o espeak-ng (pelo `espeakng-loader`),
@@ -146,7 +189,7 @@ narrar.py, audio.py             narração e acabamento a -16 LUFS
 medir.py                        WER e vãos pelo Whisper
 baixar_modelos.py               modelo e vozes, com SHA-256
 requirements*.txt               narração, medida e Piper, cada um no seu ambiente
-exemplos/                       os 4 exemplos e os arquivos deles
+exemplos/                       os 5 exemplos e os arquivos deles
 rodadas/                        calibração: gerar.py e refinar.py (Piper), calibrar.py (Kokoro), roteiro.txt
 tests/                          unittest, sem modelo
 modelos/, amostras/, saida/     gerados, fora do git

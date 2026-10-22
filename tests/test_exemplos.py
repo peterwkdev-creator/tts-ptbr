@@ -36,6 +36,44 @@ class TestExemplos(unittest.TestCase):
         self.assertEqual([s for s, _ in frases], [1, 1, 2])
 
 
+def carregar(script):
+    """Importa um exemplo pelo caminho (o nome começa com dígito)."""
+    caminho = RAIZ / "exemplos" / script
+    spec = importlib.util.spec_from_file_location(caminho.stem, caminho)
+    modulo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modulo)
+    return modulo
+
+
+class TestExemplo5Vozes(unittest.TestCase):
+    """A medida de 19/10 (vozes_medidas.tsv) se refaz sem modelo: calibrada,
+    duração e WER de cada linha saem da transcrição pelo linha_tsv()."""
+
+    def setUp(self):
+        self.vozes = carregar("05_vozes.py")
+        texto = (RAIZ / "exemplos" / "vozes_medidas.tsv").read_text(
+            encoding="utf-8")
+        self.linhas = texto.splitlines()
+
+    def test_cabecalho_e_ordem(self):
+        self.assertEqual(self.linhas[0], self.vozes.CABECALHO)
+        self.assertEqual([l.split("\t")[0] for l in self.linhas[1:]],
+                         self.vozes.ORDEM)
+
+    def test_wer_confere_com_a_transcricao(self):
+        for linha in self.linhas[1:]:
+            voz, _, duracao, _, transcricao = linha.split("\t")
+            with self.subTest(voz=voz):
+                self.assertEqual(self.vozes.linha_tsv(voz, float(duracao),
+                                                      transcricao), linha)
+
+    def test_sem_etapa_mostra_o_uso(self):
+        r = subprocess.run([sys.executable, "exemplos/05_vozes.py"], cwd=RAIZ,
+                           capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("python exemplos/05_vozes.py medir", r.stderr)
+
+
 class TestBaixarModelos(unittest.TestCase):
 
     def test_fonte_oficial_e_hash(self):
